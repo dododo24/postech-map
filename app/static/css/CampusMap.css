@@ -1,0 +1,33 @@
+/* line 1, ../../../Desktop/2020-2-poapper-hackathon/cm.scss/CampusMap.scss */
+.nav_container {
+  height: 75px;
+  padding: 1rem;
+
+  background: #C80150;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.header {
+  color: white;
+  font-weight: bold;
+}
+.nav{
+  background-color: white;
+  flex-shrink: 0;
+}
+/*# sourceMappingURL=CampusMap.css.map */
+.dropdown-toggle{
+  color: #c80150;
+}
+
+
+.mainContainer {
+  display: flex;
+}
+
+.mapContainer {
+  width: 100vw;
+  height: 100vh;
+}

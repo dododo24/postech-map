@@ -1,0 +1,816 @@
+<html lang="ko">
+  <head>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/css/bootstrap.min.css" integrity="sha384-TX8t27EcRE3e/ihU7zmQxVncDAy5uIKz4rEkgIXeMed4M0jlfIDPvg6uqKI2xXr2" crossorigin="anonymous">
+    <script src="https://code.jquery.com/jquery-3.5.1.slim.min.js" integrity="sha384-DfXdz2htPH0lsSSs5nCTpuj/zy4C+OGpamoFVy38MVBnE+IbbVYUew+OrCXaRkfj" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/bootstrap@4.5.3/dist/js/bootstrap.bundle.min.js" integrity="sha384-ho+j7jyWK8fNQe+A12Hb8AhRq26LrZ/JpcUGGOn+Y7RsweNrtN/tE3MoK7ZeZDyx" crossorigin="anonymous"></script>
+    <!-- Required meta tags -->
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+
+    <!-- Bootstrap CSS -->
+    <link href="{{ url_for('static', filename='css/CampusMap.css') }}" rel="stylesheet">
+
+    <title>Postech Campus Map</title>
+    <div class="nav_container">
+      <div class="header">
+        <h1>Postech Campus Map</h1>
+      </div>
+      <div class="menu">
+        <ul class="nav nav-tabs">
+          <li class="nav-item dropdown">       <!--Restaurant, Cafe, Printer, GS25, GSR, Sports, Others-->
+            <a class="nav-link dropdown-toggle" data-toggle="dropdown" href="#" role="button" aria-haspopup="true" aria-expanded="false">Category</a>
+            <div class="dropdown-menu">
+              <a id = "RestaurantMenu" class="dropdown-item" onclick="changeMarker('Restaurant')">식당</a>
+              <a id = "CafeMenu" class="dropdown-item" onclick="changeMarker('Cafe')">카페</a>
+              <a id = "PrinterMenu" class="dropdown-item" onclick="changeMarker('Printer')">프린터</a>
+              <a id = "GS25Menu" class="dropdown-item" onclick="changeMarker('GS25')">편의점</a>
+              <a id = "GSRMenu" class="dropdown-item" onclick="changeMarker('GSR')">회의실 예약</a>
+              <a id = "SportsMenu" class="dropdown-item" onclick="changeMarker('Sports')">운동시설 예약</a>
+              <a id = "OthersMenu" class="dropdown-item" onclick="changeMarker('Others')">기타</a>
+            </div>
+          </li>
+        </ul>
+      </div>
+    </div>
+  </head>
+
+ 
+
+
+
+
+  <body>      
+    <div class="mainContainer" id="mapwrap">
+      <div class="mapContainer" id="map"></div>
+    </div>
+
+    <script type="text/javascript" src="https://dapi.kakao.com/v2/maps/sdk.js?appkey=06444e8cb8165aacc4c3f380dbb5a1d0"></script>
+    <script>
+        
+        var mapContainer = document.getElementById('map'),
+            mapOption = { 
+                center: new kakao.maps.LatLng(36.01449, 129.32154), // map center position - POSTECH
+                level: 3 // map zoom in level 
+            }; 
+
+        var map = new kakao.maps.Map(mapContainer, mapOption); 
+
+        // List : Restaurant, Cafe, Printer, GS25, GSR, Sports, Others
+        // Restaurant : 지곡, 학생회관, RIST, 가속기식당, 버거킹
+
+        var RestaurantPositions = [ 
+            new kakao.maps.LatLng(36.01567887987021, 129.3224669610366), // 지곡
+            new kakao.maps.LatLng(36.01294026722463, 129.32081617103125), // 학생회관
+            new kakao.maps.LatLng(36.00875863154407, 129.32340596553698), // RIST
+            new kakao.maps.LatLng(36.02286591203566, 129.3164176605081), // 가속기 식당
+            new kakao.maps.LatLng(36.01553180772116, 129.322237946297) // 버거킹
+        ];
+
+        // Cafe: 투썸, 모네, 세리오
+        var CafePositions = [
+            new kakao.maps.LatLng(36.01371609093014, 129.3259801433496), // 투썸
+            new kakao.maps.LatLng(36.01559438310965, 129.32262519862695), // 모네
+            new kakao.maps.LatLng(36.01268019389683, 129.3206188641449)    // 세리오
+        ];
+
+        // Printer : 21동, 청암, 무은재기념관
+        var PrinterPositions = [
+            new kakao.maps.LatLng(36.01722966457834, 129.3206244202977), // 21동  
+            new kakao.maps.LatLng(36.01302652552458, 129.32514697492095), // 청암
+            new kakao.maps.LatLng(36.012114742518165, 129.3223560684589)  // 무은재기념관                    
+        ];    
+
+        // GS25 : 지곡, 학관, 포플
+        var GS25Positions = [
+            new kakao.maps.LatLng(36.01556829463158, 129.3227905339388), // 지곡GS
+            new kakao.maps.LatLng(36.01302427154148, 129.32100583962747), // 학관GS
+            new kakao.maps.LatLng(36.01939852391526, 129.32453767998447) // 포플GS
+        ];
+
+        // GSR : 청암, 버거킹, C5, 대학본관, 무은재기념관
+        var GSRPositions = [
+            new kakao.maps.LatLng(36.01302652552458, 129.32514697492095), // 청암
+            new kakao.maps.LatLng(36.01553180772116, 129.322237946297), // 버거킹 GSR
+            new kakao.maps.LatLng(36.01424557458549, 129.3256142497487), // C5 GSR
+            new kakao.maps.LatLng(36.010970274137115, 129.3225644955047), // 대학본관
+            new kakao.maps.LatLng(36.012114742518165, 129.3223560684589) // 무은재기념관
+        ];
+
+        // Sports : 운동장, 풋살장, 테니스장, 체육관,포플
+        var SportsPositions = [
+            new kakao.maps.LatLng(36.01295069913532, 129.31954275125975), // 운동장
+            new kakao.maps.LatLng(36.01786314624381, 129.32413499327862), // 풋살장
+            new kakao.maps.LatLng(36.0168816710459, 129.32424776626496), // 테니스장
+            new kakao.maps.LatLng(36.018840507563034, 129.32313540712894), // 체육관
+            new kakao.maps.LatLng(36.01927393065808, 129.32428369979922) // 포플
+        ];
+
+
+        // others : Dormitory( 남(1~19), RC(20, 21), 여(1~3), 대학원(1~4)), Library : 29, InternationalCenter, SouvenirShop, LogCabin, GlassesStore
+        var OthersPositions = [
+            // 1~19 동 : 일반생활관 남학생
+            // 20~21 동 : RC
+            // 여사 1~3 동
+            // 대학원 아파트 1~4 동
+
+            // 남학생 생활관
+            new kakao.maps.LatLng(36.01640740910359, 129.31979549005555), // 1동
+            new kakao.maps.LatLng(36.016251436218504, 129.3194827878711), // 2동
+            new kakao.maps.LatLng(36.01612075599604, 129.3202593316292), // 3동
+            new kakao.maps.LatLng(36.01596899804642, 129.31994662944476), // 4동
+            new kakao.maps.LatLng(36.015825670825706, 129.32081177215508), // 5동
+            new kakao.maps.LatLng(36.01547999822102, 129.3205199167829), // 6동
+            new kakao.maps.LatLng(36.01556009322778, 129.3212860371348), // 7동
+            new kakao.maps.LatLng(36.015290299196124, 129.32106193390263), // 8동
+            new kakao.maps.LatLng(36.01597321354896, 129.32135378927478), // 9동
+            new kakao.maps.LatLng(36.01612075599604, 129.3217707255207), // 10동
+            new kakao.maps.LatLng(36.01642848649683, 129.32138505949322), // 11동 
+            new kakao.maps.LatLng(36.01654651979472, 129.3218332659576), // 12동
+            new kakao.maps.LatLng(36.01674043126221, 129.32233880116343), // 13동
+            new kakao.maps.LatLng(36.016887972273, 129.32273489059708), // 14동
+            new kakao.maps.LatLng(36.0172547158747, 129.32255248098946), // 15동
+            new kakao.maps.LatLng(36.01711139099213, 129.32207821600974), // 16동
+            new kakao.maps.LatLng(36.01695541950024, 129.32180720744987), // 17동
+            new kakao.maps.LatLng(36.017600380695576, 129.322166814962), // 18동
+            new kakao.maps.LatLng(36.01690483408522, 129.32140069461008), // 19동
+
+            // RC동
+            new kakao.maps.LatLng(36.016517011491466, 129.3208117721627), // 20동
+            new kakao.maps.LatLng(36.01722966457834, 129.3206244202977), // 21동
+
+            // 여학생 생활관
+            new kakao.maps.LatLng(36.01615447995024, 129.32328733112794), // 여사 1동 : (22)
+            new kakao.maps.LatLng(36.01651701149189, 129.32304759278654), // 여사 2동 : (23)
+            new kakao.maps.LatLng(36.01652965791093, 129.3234436822202), // 여사 3동 : (24)
+            
+            // 대학원 아파트
+            new kakao.maps.LatLng(36.017427548494645, 129.32140590627748), // 대학원 1동 : (25)
+            new kakao.maps.LatLng(36.017688904389296, 129.3210567221715), // 대학원 2동 : (26)
+            new kakao.maps.LatLng(36.018118875104236, 129.32102545195306), // 대학원 3동 : (27)
+            new kakao.maps.LatLng(36.01815259819836, 129.32156746907276), // 대학원 4동 : (28)
+            
+            // 기타 시설 : 청암, 국제관, 기념품샵, 통나무집, 안경점
+            new kakao.maps.LatLng(36.01302652552458, 129.32514697492095), // 청암 : (29)
+            new kakao.maps.LatLng(36.0139732267476, 129.32102641625642), // 국제관 : (30)
+            new kakao.maps.LatLng(36.01553180772116, 129.322237946297), // 기념품샵-지곡 : (31)
+            new kakao.maps.LatLng(36.017958111175595, 129.32272002312638), // 통나무집 : (32)
+            new kakao.maps.LatLng(36.01553180772116, 129.322237946297), // 안경점 : (33)
+
+            // 학과 건물 : 34~45 (기계, 무은재-인문사회, 물리, 산경, 생명, 수학, 신소재, 전전, 컴공, 화공, 화학, 창공)
+            new kakao.maps.LatLng(36.01232832614155, 129.32083800128132), // 기계공학과 - 제5공학관 (34)
+            new kakao.maps.LatLng(36.012114742518165, 129.3223560684589), // 무은재학부, 인문사회학부 - 무은재기념관
+            new kakao.maps.LatLng(36.01192582644933, 129.3211059362375), // 물리학과 - 제3공학관
+            new kakao.maps.LatLng(36.01281338714096, 129.32157801209553), // 산업경영공학과 - 제4공학관
+            new kakao.maps.LatLng(36.02088268046163, 129.32012829201625), // 생명과학과 - 생명과학관
+            new kakao.maps.LatLng(36.01111050026521, 129.3219033616776), // 수학과 - 수리과학관 
+            new kakao.maps.LatLng(36.01168089949702, 129.32277531941915), // 신소재공학과 - 제1공학관
+            new kakao.maps.LatLng(36.01128277316621, 129.32039982647484), // 전자전기공학과 - LG연구동
+            new kakao.maps.LatLng(36.01249460170142, 129.32195111810336), // 컴퓨터공학과 - 제2공학관
+            new kakao.maps.LatLng(36.01197646578168, 129.3196911474005), // 화학공학과 - 환경공학동
+            new kakao.maps.LatLng(36.020375082497466, 129.32085784288847), // 화학과 - 화학관
+            new kakao.maps.LatLng(36.01424557458549, 129.3256142497487) // 창의IT융합공학과 - C5
+        ];
+
+
+        // List : Restaurant, Cafe, Printer, GS25, GSR, Sports, Others
+        // Markers array
+            RestaurantMarkers = [], 
+            CafeMarkers = [], 
+            PrinterMarkers = [], 
+            GS25Markers = [],   
+            GSRMarkers = [],
+            SportsMarkers = [],
+            OthersMarkers = [];
+
+        var markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/RestaurantMark.JPG')}}';  // Marker image
+        CreateRestaurantMarkers(); 
+
+        var iwContentRestaurant0 = '<div style="padding:5px;"><b>식당 - {{restaurant[0].name}}</b> <br> <ol><li>정식 : 월~일<br>조식 : 7:30~9:30 (학기 중), 8:00~9:30 (방학 중)<br>중식 : 11:30~13:30<br>석식 : 17:30~19:00</li><li>그여든 : 월~금<br>조식 : 조식 : 7:30~10:30 (학기 중), 8:00~10:30 (방학 중)<br>중식 : 11:30~13:30<br>석식 : 17:30~19:00</li><li>교직원식당 : 월~금<br>중식 : 11:50~13:00</li><li>미미짬뽕, 뚱스밥버거, 카페테리아<br>(코로나 19 안정화까지 휴업)<br><a href = "https://food.postech.ac.kr/weekly-menu/" target="blank"> 식단 </a><a href = "http://www.postech.ac.kr/campus-life/welfare-facilities/jigok-community-center/" target="blank"> 지곡회관 안내 </a><a href = "https://food.postech.ac.kr/" target="blank"> 복지회</a></li></ol> . </div>',
+            iwRemoveableRestaurant0 = true; 
+        var infowindowRestaurant0 = new kakao.maps.InfoWindow({
+                content : iwContentRestaurant0,
+                removable : iwRemoveableRestaurant0
+            });
+            kakao.maps.event.addListener(RestaurantMarkers[0], 'click', function() {
+            infowindowRestaurant0.open(map, RestaurantMarkers[0]);  
+        });
+        // 학생회관
+        var iwContentRestaurant1 = '<div style="padding:5px;"><b>식당 - {{restaurant[1].name}}</b><br>오아시스<br>(마싰는끼니, 그여든(Take-out 가능), <br>DDDN 피자)<br>월~금, 11:30~13:30<br> - <a href = "http://www.postech.ac.kr/campus-life/welfare-facilities/student-hall/" target="blank"> 학생회관 안내</a><br>. </div>', 
+            iwRemoveableRestaurant1 = true; 
+        var infowindowRestaurant1 = new kakao.maps.InfoWindow({
+                content : iwContentRestaurant1,
+                removable : iwRemoveableRestaurant1
+            });
+            kakao.maps.event.addListener(RestaurantMarkers[1], 'click', function() {
+            infowindowRestaurant1.open(map, RestaurantMarkers[1]);  
+        });
+        // RIST
+
+        var iwContentRestaurant2 = '<div style="padding:5px;"><b>식당 - {{restaurant[2].name}}</b><br> <a href = "https://ssgfoodingplus.com/fmn101.do?goTo=todayMenu&storeCd=05600" target="blank">식단</a> <br>. </div>', 
+            iwRemoveableRestaurant2 = true; 
+        var infowindowRestaurant2 = new kakao.maps.InfoWindow({
+                content : iwContentRestaurant2,
+                removable : iwRemoveableRestaurant2
+            });
+            kakao.maps.event.addListener(RestaurantMarkers[2], 'click', function() {
+            infowindowRestaurant2.open(map, RestaurantMarkers[2]);  
+        });
+        // 가속기식당
+        var iwContentRestaurant3 = '<div style="padding:5px;"><b>식당 - {{restaurant[3].name}}</b><br>- 전화번호: 054-279-1912 <br> - <a href = "//pal.postech.ac.kr/Board.pal?top=6&sub=12&sub2=0&pageMode=pal&method=boardList&brd_id=pal_cafeteria" target="blank"> 식단</a> <br> -가격: 4500원(외부인 5000원) <br>. </div>', 
+            iwRemoveableRestaurant3 = true; 
+        var infowindowRestaurant3 = new kakao.maps.InfoWindow({
+                content : iwContentRestaurant3,
+                removable : iwRemoveableRestaurant3
+            });
+            kakao.maps.event.addListener(RestaurantMarkers[3], 'click', function() {
+            infowindowRestaurant3.open(map, RestaurantMarkers[3]);  
+        });
+        //버거킹
+        var iwContentRestaurant4 = '<div style="padding:5px;"><b>식당 - {{restaurant[4].name}}</b><br>-영업시간: 11:00~20:30<br>- 전화번호: 054-279-2585 <br> - <a href = "https://www.burgerking.co.kr/#/menu/K100002/%EC%8A%A4%ED%8E%98%EC%85%9C&%ED%95%A0%EC%9D%B8%ED%8C%A9" target="blank"> 메뉴 및 가격</a> <br> <br>. </div>', 
+            iwRemoveableRestaurant4 = true; 
+        var infowindowRestaurant4 = new kakao.maps.InfoWindow({
+                content : iwContentRestaurant4,
+                removable : iwRemoveableRestaurant4
+            });
+            kakao.maps.event.addListener(RestaurantMarkers[4], 'click', function() {
+            infowindowRestaurant4.open(map, RestaurantMarkers[4]);  
+        });
+
+
+
+
+        markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/CafeIcon.JPG')}}';  // Maker image
+        CreateCafeMarkers();
+
+// 투썸
+        var iwContentCafe0 = '<div style="padding:5px;"><b>카페 - 투썸</b><br> - 운영시간 : 08:30 ~ 21:00 <br> - 전화번호 : 054-279-2635 <br>. </div>', 
+            iwRemoveableCafe0 = true; 
+        var infowindowCafe0 = new kakao.maps.InfoWindow({
+                content : iwContentCafe0,
+                removable : iwRemoveableCafe0
+            });
+            kakao.maps.event.addListener(CafeMarkers[0], 'click', function() {
+            infowindowCafe0.open(map, CafeMarkers[0]);  
+        });
+        // 모네
+        var iwContentCafe1 = '<div style="padding:5px;"><b>카페 - 투썸</b><br> - 운영시간 : (월~금) 11:30 ~ 14:00, (토,일) 11:30~15:30 <br> - 전화번호 : 054-279-2667 <br>. </div>', 
+            iwRemoveableCafe1 = true; 
+        var infowindowCafe1 = new kakao.maps.InfoWindow({
+                content : iwContentCafe1,
+                removable : iwRemoveableCafe1
+            });
+            kakao.maps.event.addListener(CafeMarkers[1], 'click', function() {
+            infowindowCafe0.open(map, CafeMarkers[1]);  
+        });
+        // 세리오
+        var iwContentCafe2 = '<div style="padding:5px;"><b>카페 - 세리오</b><br> - 운영시간 : (월~금) 8:00 ~ 16:00 <br> - 전화번호 : 054-279-3720 <br>. </div>', 
+            iwRemoveableCafe2 = true; 
+        var infowindowCafe2 = new kakao.maps.InfoWindow({
+                content : iwContentCafe2,
+                removable : iwRemoveableCafe2
+            });
+            kakao.maps.event.addListener(CafeMarkers[2], 'click', function() {
+            infowindowCafe0.open(map, CafeMarkers[2]);  
+        });
+
+        markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/PrinterMark.JPG')}}';
+        CreatePrinterMarkers();
+
+        var iwContentPrinter0 = '<div style="padding:5px;"><b>프린터 - 21동</b><br> - 21동 1층 로비 자판기 옆 위치</div>', 
+            iwRemoveablePrinter0 = true; 
+        var infowindowPrinter0 = new kakao.maps.InfoWindow({
+                content : iwContentPrinter0,
+                removable : iwRemoveablePrinter0
+            });
+            kakao.maps.event.addListener(PrinterMarkers[0], 'click', function() {
+            infowindowPrinter0.open(map, PrinterMarkers[0]);  
+        });
+        var iwContentPrinter1 = '<div style="padding:5px;"><b>프린터 - 청암</b><br> - 청암 5층 데스크에서 오른쪽 위치</div>', 
+            iwRemoveablePrinter1 = true; 
+        var infowindowPrinter1 = new kakao.maps.InfoWindow({
+                content : iwContentPrinter1,
+                removable : iwRemoveablePrinter1
+            });
+            kakao.maps.event.addListener(PrinterMarkers[1], 'click', function() {
+            infowindowPrinter1.open(map, PrinterMarkers[1]);  
+        });
+        var iwContentPrinter2 = '<div style="padding:5px;"><b>프린터 - 무은재기념관</b><br> - 무은재기념관 study room 뒤 위치</div>', 
+            iwRemoveablePrinter2 = true; 
+        var infowindowPrinter2 = new kakao.maps.InfoWindow({
+                content : iwContentPrinter2,
+                removable : iwRemoveablePrinter2
+            });
+            kakao.maps.event.addListener(PrinterMarkers[2], 'click', function() {
+            infowindowPrinter2.open(map, PrinterMarkers[2]);  
+        });
+
+
+        markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/GS25.JPG')}}'
+        CreateGS25Markers();
+        // GS25 : 지곡, 학관, 포플
+        // 지곡 GS
+        var iwContentGS250 = '<div style="padding:5px;"><b>GS25 - 지곡</b><br> - 운영시간 : 유인운영: 08:00 ~ 익일) 02:00 <br> 무인운영: 02:00~08:00 <br> - 전화번호 : 054-279-2680 <br>. </div>', 
+            iwRemoveableGS250 = true; 
+        var infowindowGS250 = new kakao.maps.InfoWindow({
+                content : iwContentGS250,
+                removable : iwRemoveableGS250
+            });
+            kakao.maps.event.addListener(GS25Markers[0], 'click', function() {
+            infowindowGS250.open(map, GS25Markers[0]);  
+        });
+        // 학관 GS
+        var iwContentGS251 = '<div style="padding:5px;"><b>GS25 - 학관</b><br> - 운영시간 : 유인운영: 09:00 ~ 18:00 <br> 무인운영: 18:00~ 익일) 09:00 <br> - 전화번호 : 054-279-2630 <br>. </div>', 
+            iwRemoveableGS251 = true; 
+        var infowindowGS251 = new kakao.maps.InfoWindow({
+                content : iwContentGS251,
+                removable : iwRemoveableGS251
+            });
+            kakao.maps.event.addListener(GS25Markers[1], 'click', function() {
+            infowindowGS251.open(map, GS25Markers[1]);  
+        });
+        // 포플 GS
+        var iwContentGS252 = '<div style="padding:5px;"><b>GS25 - 포플</b><br> </div>', 
+            iwRemoveableGS252 = true; 
+        var infowindowGS252 = new kakao.maps.InfoWindow({
+                content : iwContentGS252,
+                removable : iwRemoveableGS252
+            });
+            kakao.maps.event.addListener(GS25Markers[2], 'click', function() {
+            infowindowGS252.open(map, GS25Markers[2]);  
+        });
+
+        markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/GSR.JPG')}}';
+        CreateGSRMarkers();
+
+        // 청암 GSR
+        var iwContentGSR0 = '<div style="padding:5px;"><b>GSR - 청암 3, 4, 5층</b><br> - 운영시간 : (3층 : 24시간), (4층 : 08:00 ~ 22:00) <br>  -주의사항 <ol><li>그룹스터디룸 : 6인실 이상만 예약 후 이용 가능(실별 정원의 50% 이하로 입실)</li><li> <a href = "https://library.postech.ac.kr/availability" target = "blank"> (GSR 4층, 5층) 예약 주소</a> </li> <li> 5층 GSR 공사로 이용 불가 </li> <br>. </div>', 
+            iwRemoveableGSR0 = true; 
+        var infowindowGSR0 = new kakao.maps.InfoWindow({
+                content : iwContentGSR0,
+                removable : iwRemoveableGSR0
+            });
+            kakao.maps.event.addListener(GSRMarkers[0], 'click', function() {
+            infowindowGSR0.open(map, GSRMarkers[0]);  
+        });
+        // 버거킹 GSR
+        var iwContentGSR1 = '<div style="padding:5px;"><b>GSR - 버거킹 옆</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableGSR1 = true; 
+        var infowindowGSR1 = new kakao.maps.InfoWindow({
+                content : iwContentGSR1,
+                removable : iwRemoveableGSR1
+            });
+            kakao.maps.event.addListener(GSRMarkers[1], 'click', function() {
+            infowindowGSR1.open(map, GSRMarkers[1]);  
+        });
+        // C5 GSR
+        var iwContentGSR2 = '<div style="padding:5px;"><b>GSR - C5</b><br> - 예약 방법 : <a href = "https://cite.postech.ac.kr/reservation/" target = "blank"> C5 GSR 예약 </a> <br> 참고 : <a href = "https://cite.postech.ac.kr/" target = "blank"> 창공과(C5 : 창공과 건물) 홈페이지 </a>  <br>. </div>', 
+            iwRemoveableGSR2 = true; 
+        var infowindowGSR2 = new kakao.maps.InfoWindow({
+                content : iwContentGSR2,
+                removable : iwRemoveableGSR2
+            });
+            kakao.maps.event.addListener(GSRMarkers[2], 'click', function() {
+            infowindowGSR2.open(map, GSRMarkers[2]);  
+        });
+        // 대학본관 GSR
+        var iwContentGSR3 = '<div style="padding:5px;"><b>GSR - 대학본관</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableGSR3 = true; 
+        var infowindowGSR3 = new kakao.maps.InfoWindow({
+                content : iwContentGSR3,
+                removable : iwRemoveableGSR3
+            });
+            kakao.maps.event.addListener(GSRMarkers[3], 'click', function() {
+            infowindowGSR3.open(map, GSRMarkers[3]);  
+        });
+        // 무은재기념관 GSR
+        var iwContentGSR4 = '<div style="padding:5px;"><b>GSR - 무은재기념관</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableGSR4 = true; 
+        var infowindowGSR4 = new kakao.maps.InfoWindow({
+                content : iwContentGSR4,
+                removable : iwRemoveableGSR4
+            });
+            kakao.maps.event.addListener(GSRMarkers[4], 'click', function() {
+            infowindowGSR4.open(map, GSRMarkers[4]);  
+        });
+
+        markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Football.JPG')}}';
+        CreateSportsMarkers();
+
+                // 운동장
+        var iwContentSports0 = '<div style="padding:5px;"><b>운동장</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableSports0 = true; 
+        var infowindowSports0 = new kakao.maps.InfoWindow({
+                content : iwContentSports0,
+                removable : iwRemoveableSports0
+            });
+            kakao.maps.event.addListener(SportsMarkers[0], 'click', function() {
+            infowindowSports0.open(map, SportsMarkers[0]);  
+        });
+        // 풋살장
+        var iwContentSports1 = '<div style="padding:5px;"><b>풋살장</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableSports1 = true; 
+        var infowindowSports1 = new kakao.maps.InfoWindow({
+                content : iwContentSports1,
+                removable : iwRemoveableSports1
+            });
+            kakao.maps.event.addListener(SportsMarkers[1], 'click', function() {
+            infowindowSports1.open(map, SportsMarkers[1]);  
+        });
+        // 테니스장
+        var iwContentSports2 = '<div style="padding:5px;"><b>테니스장</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableSports2 = true; 
+        var infowindowSports2 = new kakao.maps.InfoWindow({
+                content : iwContentSports2,
+                removable : iwRemoveableSports2
+            });
+            kakao.maps.event.addListener(SportsMarkers[2], 'click', function() {
+            infowindowSports2.open(map, SportsMarkers[2]);  
+        });
+        // 체육관
+        var iwContentSports3 = '<div style="padding:5px;"><b>체육관</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br> - 전화번호 : 054-279-3881 <br>. </div>', 
+            iwRemoveableSports3 = true; 
+        var infowindowSports3 = new kakao.maps.InfoWindow({
+                content : iwContentSports3,
+                removable : iwRemoveableSports3
+            });
+            kakao.maps.event.addListener(SportsMarkers[3], 'click', function() {
+            infowindowSports3.open(map, SportsMarkers[3]);  
+        });
+        // 포플
+        var iwContentSports4 = '<div style="padding:5px;"><b>포스플렉스</b><br> - 예약 방법 : <a href = "http://povis.postech.ac.kr/irj/portal" target = "blank"> POVIS 주소</a> <br> POVIS>신고/신청>시설이용" <br>. </div>', 
+            iwRemoveableSports4 = true; 
+        var infowindowSports4 = new kakao.maps.InfoWindow({
+                content : iwContentSports4,
+                removable : iwRemoveableSports4
+            });
+            kakao.maps.event.addListener(SportsMarkers[4], 'click', function() {
+            infowindowSports4.open(map, SportsMarkers[4]);  
+        });
+
+        markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Dormitory.JPG')}}';
+        CreateOthersMarkers();
+
+        // others : Dormitory( 남(1~19), RC(20, 21), 여(1~3), 대학원(1~4)), Library : 29, InternationalCenter, SouvenirShop, LogCabin, GlassesStore
+        // 청암
+        var iwContentOthers29 = '<div style="padding:5px;"><b>청암학술정보관</b><br> - 운영시간 <br> <ol><li>층 : 08:00~22:00 </li><li>층 : 08:00~22:00</li><li>층 : 24시간 </li><li>층 : 08:00~22:00 </li><li>층 : 운영 X </li><li>층24시간</li></ol> <a href = "https://library.postech.ac.kr/" target="blank"> 청암 홈페이지, </a> <br> <a href = "https://library.postech.ac.kr/board/863757" target = "blank"> 운영시간 정보 주소 </a> <br>.  </div>', 
+            iwRemoveableOthers29 = true; 
+        var infowindowOthers29 = new kakao.maps.InfoWindow({
+                content : iwContentOthers29,
+                removable : iwRemoveableOthers29
+            });
+            kakao.maps.event.addListener(OthersMarkers[28], 'click', function() {
+            infowindowOthers29.open(map, OthersMarkers[28]);  
+        });
+        // 국제관
+        var iwContentOthers30 = '<div style="padding:5px;"><b>Posco 국제관</b><br> - 홈페이지 : <a href = "http://www.postech.ac.kr/campus-life/welfare-facilities/posco-international-center/" target = "blank"> 국제관 </a> <br>. </div>', 
+            iwRemoveableOthers30 = true; 
+        var infowindowOthers30 = new kakao.maps.InfoWindow({
+                content : iwContentOthers30,
+                removable : iwRemoveableOthers30
+            });
+            kakao.maps.event.addListener(OthersMarkers[29], 'click', function() {
+            infowindowOthers30.open(map, OthersMarkers[29]);  
+        });
+        // 기념품샵
+        var iwContentOthers31 = '<div style="padding:5px;"><b>기념품샵</b><br> - 버거킹 옆 위치 <br>. </div>', 
+            iwRemoveableOthers31 = true; 
+        var infowindowOthers31 = new kakao.maps.InfoWindow({
+                content : iwContentOthers31,
+                removable : iwRemoveableOthers31
+            });
+            kakao.maps.event.addListener(OthersMarkers[30], 'click', function() {
+            infowindowOthers31.open(map, OthersMarkers[30]);  
+        });
+        // 통나무집
+        var iwContentOthers32 = '<div style="padding:5px;"><b>통나무집</b><br> - 교내 주점 <br>. </div>', 
+            iwRemoveableOthers32 = true; 
+        var infowindowOthers32 = new kakao.maps.InfoWindow({
+                content : iwContentOthers32,
+                removable : iwRemoveableOthers32
+            });
+            kakao.maps.event.addListener(OthersMarkers[31], 'click', function() {
+            infowindowOthers32.open(map, OthersMarkers[31]);  
+        });
+        // 안경점
+        var iwContentOthers33 = '<div style="padding:5px;"><b>안경점</b><br> - 버거킹 옆 위치 <br>. </div>', 
+            iwRemoveableOthers33 = true; 
+        var infowindowOthers33 = new kakao.maps.InfoWindow({
+                content : iwContentOthers33,
+                removable : iwRemoveableOthers33
+            });
+            kakao.maps.event.addListener(OthersMarkers[32], 'click', function() {
+            infowindowOthers33.open(map, OthersMarkers[32]);  
+        });
+
+
+        ChangeMarker('Restaurant'); // Cafe Marker on
+
+
+        function CreateMarkerImage(src, size, options) {
+            var markerImage = new kakao.maps.MarkerImage(src, size, options);
+            return markerImage;            
+        }
+
+        // Create Marker 
+        function CreateMarker(position, image) {
+            var marker = new kakao.maps.Marker({
+                position: position,
+                image: image
+            });
+            return marker;  
+        }   
+        
+
+        // List : Restaurant, Cafe, Printer, GS25, GSR, Sports, Others
+
+        // Restaurant Function
+        // Restaurant : 지곡, 학생회관, RIST, 가속기식당, 버거킹
+        function CreateRestaurantMarkers() {
+            for (var i = 0; i < RestaurantPositions.length; i++) {
+                if (i == 4) {
+                    markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/BurgerKing.JPG')}}';
+                }
+
+                var imageSize = new kakao.maps.Size(25, 29),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(RestaurantPositions[i], markerImage);  
+                
+                RestaurantMarkers.push(marker);
+            }     
+        }
+        // Set which show makers or not
+        function setRestaurantMarkers(map) {        
+            for (var i = 0; i < RestaurantMarkers.length; i++) {  
+                RestaurantMarkers[i].setMap(map);
+            }        
+        }
+
+        // Cafe Function
+        // Cafe: 투썸, 모네, 세리오
+        function CreateCafeMarkers() {
+            for (var i = 0; i < CafePositions.length; i++) {
+                if (i == 0) {
+                    markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Twosome.JPG')}}';
+                }
+                else if (i == 1) {
+                    markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/CafeIcon.JPG')}}';
+                }
+                var imageSize = new kakao.maps.Size(22, 26),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+                    
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(CafePositions[i], markerImage);  
+                CafeMarkers.push(marker);    
+            }        
+        }
+        function setCafeMarkers(map) {        
+            for (var i = 0; i < CafeMarkers.length; i++) {  
+                CafeMarkers[i].setMap(map);
+            }        
+        }
+
+        // Printer Function
+        function CreatePrinterMarkers() {
+            for (var i = 0; i < PrinterPositions.length; i++) {
+                var imageSize = new kakao.maps.Size(22, 26),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+                        
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(PrinterPositions[i], markerImage);  
+
+                PrinterMarkers.push(marker);
+            }                
+        }
+        function setPrinterMarkers(map) {        
+            for (var i = 0; i < PrinterMarkers.length; i++) {  
+                PrinterMarkers[i].setMap(map);
+            }        
+        }
+
+        // GS25 Function
+        function CreateGS25Markers() {
+            for (var i = 0; i < GS25Positions.length; i++) {
+                
+                var imageSize = new kakao.maps.Size(26, 22),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+                        
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(GS25Positions[i], markerImage);  
+
+                GS25Markers.push(marker);
+            }                
+        }
+        function setGS25Markers(map) {        
+            for (var i = 0; i < GS25Markers.length; i++) {  
+                GS25Markers[i].setMap(map);
+            }        
+        }
+
+        // GSR Function
+        function CreateGSRMarkers() {
+            for (var i = 0; i < GSRPositions.length; i++) {
+                
+                var imageSize = new kakao.maps.Size(22, 26),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+                        
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(GSRPositions[i], markerImage);  
+                GSRMarkers.push(marker);
+            }                
+        }
+        function setGSRMarkers(map) {        
+            for (var i = 0; i < GSRMarkers.length; i++) {  
+                GSRMarkers[i].setMap(map);
+            }        
+        }
+
+        // Sports Function
+        // Sports : 운동장, 풋살장, 테니스장, 체육관,포플
+        function CreateSportsMarkers() {
+            for (var i = 0; i < SportsPositions.length; i++) {
+                if (i == 0) {
+                    markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/PlayGround.JPG')}}';
+                }
+                else if (i == 2) {
+                    markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Tennis.JPG')}}';
+                }
+                else if (i==3) {
+                    markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Gym.JPG')}}';
+                }
+
+                var imageSize = new kakao.maps.Size(27, 33),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+                        
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(SportsPositions[i], markerImage);  
+
+                SportsMarkers.push(marker);
+            }                
+        }
+        function setSportsMarkers(map) {        
+            for (var i = 0; i < SportsMarkers.length; i++) {  
+                SportsMarkers[i].setMap(map);
+            }        
+        }
+
+        // Others Function
+        // others : Dormitory( 남(1~19), RC(20, 21), 여(1~3), 대학원(1~4)), Library : 29, InternationalCenter, SouvenirShop, LogCabin, GlassesStore
+
+        function CreateOthersMarkers() {
+            for (var i = 0; i < OthersPositions.length; i++) {
+                switch (i){
+                    // 남생활관 1~19
+                    case 0:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue1.JPG')}}';    break;
+                    case 1:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue2.JPG')}}';    break;
+                    case 2:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue3.JPG')}}';    break;
+                    case 3:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue4.JPG')}}';    break;
+                    case 4:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue5.JPG')}}';    break;
+                    case 5:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue6.JPG')}}';    break;
+                    case 6:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue7.JPG')}}';    break;
+                    case 7:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue8.JPG')}}';    break;
+                    case 8:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue9.JPG')}}';    break;
+                    case 9:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue10.JPG')}}';    break;
+                    case 10:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue11.JPG')}}';    break;
+                    case 11:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue12.JPG')}}';    break;
+                    case 12:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue13.JPG')}}';    break;
+                    case 13:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue14.JPG')}}';    break;
+                    case 14:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue15.JPG')}}';    break;
+                    case 15:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue16.JPG')}}';    break;
+                    case 16:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue17.JPG')}}';    break;
+                    case 17:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue18.JPG')}}';    break;
+                    case 18:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/blue19.JPG')}}';    break;
+                    
+                    // RC : 20, 21
+                    case 19:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/yellow20.JPG')}}';    break;
+                    case 20:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/yellow21.JPG')}}';    break;
+                    
+                    // 여생활관 1~3
+                    case 21:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/red1.JPG')}}';    break;
+                    case 22:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/red2.JPG')}}';    break;
+                    case 23:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/red3.JPG')}}';    break;
+                    
+                    // 대학원 1~4
+                    case 24:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/green1.JPG')}}';    break;
+                    case 25:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/green2.JPG')}}';    break;
+                    case 26:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/green3.JPG')}}';    break;
+                    case 27:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/green4.JPG')}}';    break;
+                    
+                    // 청암 : 29
+                    case 28:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Library.JPG')}}';    break;
+                    // 국제관 : 30
+                    case 29:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Posco.JPG')}}';    break;
+                    // 기념품샵 : 31
+                    case 30:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Souvenir.JPG')}}';    break;
+                    // 통나무집 : 32
+                    case 31:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/LogCavinMark.JPG')}}';    break;
+                    // 안경점 : 33
+                    case 32:         markerImageSrc = '{{ url_for('static', filename = 'logos/FacilityMarks/Glasses.JPG')}}';    break;
+                    
+                    // 학과 건물 : 34~45 (기계, 무은재-인문사회, 물리, 산경, 생명, 수학, 신소재, 전전, 컴공, 화공, 화학, 창공)
+                    case 33:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Mechanic.JPG')}}';    break;
+                    case 34:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Mueunjae.JPG')}}';    break;
+                    case 35:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Physics.JPG')}}';    break;
+                    case 36:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Industry.JPG')}}';    break;
+                    case 37:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Life.JPG')}}';    break;
+                    case 38:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Math.JPG')}}';    break;
+                    case 39:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Material.JPG')}}';    break;
+                    case 40:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Electronic.JPG')}}';    break;
+                    case 41:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Computer.JPG')}}';    break;
+                    case 42:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/ChemicalEngineering.JPG')}}';    break;
+                    case 43:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Chemistry.JPG')}}';    break;
+                    case 44:         markerImageSrc = '{{ url_for('static', filename = 'logos/DepartmentsMark/Cite.JPG')}}';    break;
+                }
+                var imageSize = new kakao.maps.Size(30, 35),
+                    imageOptions = imageOption = {offset: new kakao.maps.Point(10, 10)}; 
+                        
+                var markerImage = CreateMarkerImage(markerImageSrc, imageSize, imageOptions),    
+                    marker = CreateMarker(OthersPositions[i], markerImage);  
+
+                OthersMarkers.push(marker);
+            }                
+        }
+        function setOthersMarkers(map) {        
+            for (var i = 0; i < OthersMarkers.length; i++) {  
+                OthersMarkers[i].setMap(map);
+            }        
+        }
+
+        // List : Restaurant, Cafe, Printer, GS25, GSR, Sports, Others
+        // chaging printed Markers on map according to the type of category
+        function changeMarker(type){
+            if (type === 'Restaurant') {                
+                setRestaurantMarkers(map);
+                setCafeMarkers(null);
+                setPrinterMarkers(null);
+                setGS25Markers(null);
+                setGSRMarkers(null);
+                setSportsMarkers(null);
+                setOthersMarkers(null);
+            } 
+            
+            else if (type === 'Cafe') {     
+                setRestaurantMarkers(null);
+                setCafeMarkers(map);
+                setPrinterMarkers(null);
+                setGS25Markers(null);
+                setGSRMarkers(null);
+                setSportsMarkers(null);
+                setOthersMarkers(null);        
+            } 
+            
+            else if (type === 'Printer') {     
+                setRestaurantMarkers(null);
+                setCafeMarkers(null);
+                setPrinterMarkers(map);
+                setGS25Markers(null);
+                setGSRMarkers(null);
+                setSportsMarkers(null);
+                setOthersMarkers(null);        
+            } 
+            
+            else if (type === 'GS25') {     
+                setRestaurantMarkers(null);
+                setCafeMarkers(null);
+                setPrinterMarkers(null);
+                setGS25Markers(map);
+                setGSRMarkers(null);
+                setSportsMarkers(null);
+                setOthersMarkers(null);        
+            } 
+            
+            else if (type === 'GSR') {     
+                setRestaurantMarkers(null);
+                setCafeMarkers(null);
+                setPrinterMarkers(null);
+                setGS25Markers(null);
+                setGSRMarkers(map);
+                setSportsMarkers(null);
+                setOthersMarkers(null);        
+            } 
+            
+            else if (type === 'Sports') {     
+                setRestaurantMarkers(null);
+                setCafeMarkers(null);
+                setPrinterMarkers(null);
+                setGS25Markers(null);
+                setGSRMarkers(null);
+                setSportsMarkers(map);
+                setOthersMarkers(null);        
+            } 
+
+            else if (type === 'Others') {     
+                setRestaurantMarkers(null);
+                setCafeMarkers(null);
+                setPrinterMarkers(null);
+                setGS25Markers(null);
+                setGSRMarkers(null);
+                setSportsMarkers(null);
+                setOthersMarkers(map);        
+            } 
+        } 
+
+    </script>
+  </body>
+</html>

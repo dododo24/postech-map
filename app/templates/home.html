@@ -1,0 +1,32 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/home.css') }}">
+<style>
+    body{ background-image : url({{ url_for('static', filename = '/images/home_background.jpg')}});
+	 background-repeat : no-repeat;
+     background-size : cover;
+     }
+</style>
+</head>
+<body>
+    <div style="position: absolute; left: 500px; top: 50px;">
+        <div class="title">
+            <h1>포스텍 안내지도</h1>
+        </div>
+    </div>
+    <div style="position: absolute; left: 565px; top: 330px;">
+        <div class="wrap">
+            <button type="button" class="button" onClick="location.href='{{ url_for('map') }}'">
+                지도 보러가기
+            </button>
+          </div>
+    </div>
+    <div style="position: absolute; left: 540px; top: 400px;">
+         <h6>만든 사람들: 김은채, 맹찬영, 심도은</h6>
+    </div>
+</body>
+</html>

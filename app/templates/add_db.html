@@ -1,0 +1,35 @@
+{% block content %}
+    <h1>Add Information on DB</h1>
+    <form action="" method="post">
+        {{ form.hidden_tag() }}
+        <p>
+            {{ form.category.label }}<br>
+            {{ form.category(size=32) }}<br>
+        </p>
+        <p>
+            {{ form.name.label }}<br>
+            {{ form.name(size=32) }}<br>
+        </p>
+        <p>
+            {{ form.time.label }}<br>
+            {{ form.time(cols=100, rows=5) }}<br>
+        </p>
+        <p>
+            {{ form.home_url.label }}<br>
+            {{ form.home_url(cols=100, rows=5) }}<br>
+        </p>
+        <p>
+            {{ form.menu_url.label }}<br>
+            {{ form.menu_url(cols=100, rows=5) }}<br>
+        </p>
+        <p>
+            {{ form.reserv_url.label }}<br>
+            {{ form.reserv_url(cols=100, rows=5) }}<br>
+        </p>
+        <p>
+            {{ form.phone_num.label }}<br>
+            {{ form.phone_num(size=32) }}<br>
+        </p>
+        <p>{{ form.submit() }}</p>
+    </form>
+{% endblock %}
